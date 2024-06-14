@@ -18,21 +18,23 @@ Neste exemplo, para implementar o Azure Application Gateway, será necessário a
   > Foi implementado 3 Web Apps: um frontend e dois backends, a fim de simular os redirecionamentos.
 - Azure Application Gateway
 
-### Criando a Virtual Network
+## Criando a Virtual Network
 ![create_virtual_network](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/393c688f-7007-4005-bf2f-bde477821ee0)
 
 - Foi criada duas subnets: uma para as aplicações e outra para o gateway. O gateway precisa de uma subnet específica, visto que ele tem a opção de autoscale, sendo assim ele pode precisar de adicionar mais IPs na subnet alocada.
 
-### Criando os Web Apps
+## Criando os Web Apps
 ![create_web_app](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/f4cdb514-e80e-4d95-b53e-80df1e979ec9)
 
 - No GIF acima, foi criado somente um Web App
   - A opção de deploy habilitada foi do tipo container
   - Na parte de network, foi desabilitado a opção de IP Publico, visto que não há necessidade.
   - Foi habilitada a injeção de Virtual Networks, informando qual seria o nome para o private endpoint na rede (nesse caso selecionando o próprio DNS da Azure) e qual a subnet. Note que a subnet selecionada foi a `SUBNET-HOSTS`
- - Observação: crie os outros dois Web Apps para os backends.
+ - Observação:
+   > Crie os outros dois Web Apps para os backends.
+   > Após a criação, desabilite a obrigatoriedade do HTTPs. Nesse exemplo não foi adicionado certificado SSL.
 
-### Criando Azure Applicaiton Gateway
+## Criando Azure Applicaiton Gateway
 ![create_gt_basic](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/3b91eb9f-0ce0-485a-adde-8820cf1a1ac6)
 
 - Nas informações básicas para a criação do gateway, é necessário informar se o autoscale será habilitado ou não. Caso não seja, informar a quantidade de réplicas.
@@ -60,27 +62,43 @@ Neste exemplo, para implementar o Azure Application Gateway, será necessário a
   - Foi criado um path `/backend02/*`
  - Feito essas configurações, basta criar o gateway.
 
-### Configurações após a criação
-#### Criando um DNS para o gateway
+## Configurações após a criação
+### Criando um DNS para o gateway
 Para criar um DNS da azure para o gateway, basta:
 1. Acessar o Public IP que está relacionado ao gateway
 2. Acessar a aba de `Configuration`
 3. No campo `DNS name label`, adicionar a label desejada
 Para este exemplo, o DNS ficou `http://estudos-gt.eastus.cloudapp.azure.com`
 
-#### Executando a pipeline do frontend e backend para publicação
+### Executando a pipeline do frontend e backend para publicação
 As pipelines para publicar a aplicação do frontend, backend 01 e backend 02 podem ser executadas.
 - `Pipeline do frontend`
   > Será necessário informar qual é o IP ou DNS (adcionado anteriormente) do application gateway e também o nome do webapp criado.
+  > A variável `PUBLIC_IP` será configurada para o DNS do gateway, a fim de obter os arquivos corretamente (main.js, main.css, etc)
 - `Pipeline do backend`
   > Será necessário informar qual é o nome do webapp criado.
 
-#### Configurações adicionais
+### Configurações adicionais
 Temos a possibilidade de gerenciar, entre outras, algumas informações do gateway:
 - Os backend pool
 - Os backend settings
 - Rules de redirecionamento
 - Probes para verificação de integridade das aplicações
 
-Inicialmente, será necessário configurar Probe para as aplicações do backend, informando como opção o endpoint do swagger para validar a integridade da aplicação (apenas para fins de testes).
+Algumas configurações adicionais a serem feitas
+- Validar o override path nos `Backend Settings` criados. Validar se o override está correto (para este cenário seria para sobreescrever toda o path da regra: `/`)
+- Sobreescrever o Host Name através do backend pool
+- Configurar Probe para as aplicações do backend, informando um endpoint válido para a verificação de integridade da aplicação. Para este exemplo, o `/swagger` pode ser utilizado.
+
+![add_probe](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/f30acb20-3295-42fd-8852-5e07bbb62c46)
+
+Feitas as configurações, as probes podem ser verificadas:
+
+![image](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/52a0892d-9bb0-4635-a4a9-cfe4725dd33d)
+
+## Resultado final
+Agora o as requisições estão abstraidas pelo gateway e redirecionadas para o serviço específico.
+
+![exemplo](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/09404de6-260d-42d4-9db6-6f2138f45202)
+
 
