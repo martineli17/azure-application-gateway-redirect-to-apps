@@ -1,0 +1,72 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+- name: app_name
+  displayName: Nome do Web App Azure
+  type: string
+
+stages:
+- stage: BuildRestore
+  displayName: Build and Restore
+  jobs:
+  - job: BuildRestore
+    displayName: Build and Restore
+    steps:
+    - task: UseDotNet@2 
+      displayName: "Use .NET 8.0.x"
+      inputs:
+        version: '8.0.x'
+        packageType: sdk
+
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: restore
+        projects: '**/*.csproj'
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: build
+        projects: '**/*.csproj'
+
+    - task: Docker@2
+      displayName: Login to DockerHub
+      inputs:
+        command: login
+        containerRegistry: docker-personal
+
+    - task: Docker@2
+      displayName: Build and Push DockerImage
+      inputs:
+        command: 'buildAndPush'
+        containerRegistry: docker-personal
+        repository: fabiomartineli/gateway-from-azure-gateway-api
+        Dockerfile: ./api/Api/Dockerfile
+        buildContext: .
+        tags: |
+          latest
+
+    - script: echo 'fabiomartineli/gateway-from-azure-gateway-api:latest'
+      displayName: 'Imagem docker gerada'
+
+- stage: DeployByContainer
+  dependsOn: BuildRestore
+  jobs:
+  - deployment: AzureAppServiceContainer
+    displayName: Azure App Service by Container
+    environment: personal
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebAppContainer@1
+            inputs:
+              azureSubscription: 'azure-personal'
+              appName: ${{parameters.app_name}}
+              containers: 'fabiomartineli/gateway-from-azure-gateway-api:latest'
+              appSettings: |
+                -WebAppName '${{parameters.app_name}}'

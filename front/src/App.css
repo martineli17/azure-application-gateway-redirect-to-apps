@@ -1,0 +1,62 @@
+.main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+    border: none;
+    padding: 20px;
+    border-radius: 10px;
+    width: 20%;
+    background-color: blueviolet;
+    color: whitesmoke;
+}
+
+button {
+    padding: 10px;
+    width: 150px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    background-color: whitesmoke;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    color: gray
+}
+
+h2 {
+    background-color: whitesmoke;
+    padding: 10px;
+    border-radius: 5px;
+    color: gray;
+    cursor: pointer;
+}
+
+P {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+}
+ 
+span {
+    font-weight: bold;
+    padding: 10px;
+}
+
+label {
+    background-color: whitesmoke;
+    padding: 10px;
+    border-radius: 5px;
+    color: gray;
+    cursor: pointer;
+    font-weight: 200;
+}

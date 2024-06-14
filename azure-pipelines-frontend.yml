@@ -1,0 +1,74 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+- name: url_gateway
+  displayName: URL Azure Gateway
+  type: string
+- name: app_name
+  displayName: Nome do Web App Azure
+  type: string
+
+stages:
+- stage: BuildRestore
+  displayName: Build and Restore
+  jobs:
+  - job: BuildRestore
+    displayName: Build and Restore
+    steps:
+    - task: UseNode@1
+      displayName: 'Install Node.js'
+      inputs:
+        version: '20.x'
+
+    - script: cd ./front && yarn
+      displayName: 'Yarn install'
+
+    - script: cd ./front && yarn build
+      displayName: 'Yarn build'
+
+    - task: qetza.replacetokens.replacetokens-task.replacetokens@6
+      inputs:
+        sources: './front/Dockerfile'
+        additionalVariables: |
+          - AZURE_GATEWAY_ENDPOINT_FRONTEND: '${{parameters.url_gateway}}/frontend'
+          - AZURE_GATEWAY_ENDPOINT_BACKEND01: '${{parameters.url_gateway}}/backend01/environment-variable'
+          - AZURE_GATEWAY_ENDPOINT_BACKEND02: '${{parameters.url_gateway}}/backend02/environment-variable'
+
+    - task: Docker@2
+      displayName: Login to DockerHub
+      inputs:
+        command: login
+        containerRegistry: docker-personal
+
+    - task: Docker@2
+      displayName: Build and Push DockerImage
+      inputs:
+        command: 'buildAndPush'
+        containerRegistry: docker-personal
+        repository: fabiomartineli/gateway-from-azure-gateway-front
+        Dockerfile: ./front/Dockerfile
+        buildContext: .
+        tags: |
+          latest
+
+    - script: echo 'fabiomartineli/gateway-from-azure-gateway-front:latest'
+      displayName: 'Imagem docker gerada'
+
+- stage: DeployByContainer
+  dependsOn: BuildRestore
+  jobs:
+  - deployment: AzureAppServiceContainer
+    displayName: Azure App Service by Container
+    environment: personal
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebAppContainer@1
+            inputs:
+              azureSubscription: 'azure-personal'
+              appName: ${{parameters.app_name}}
+              containers: 'fabiomartineli/gateway-from-azure-gateway-front:latest'
