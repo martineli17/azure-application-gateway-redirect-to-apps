@@ -97,7 +97,7 @@ Feitas as configurações, as probes podem ser verificadas:
 ![image](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/52a0892d-9bb0-4635-a4a9-cfe4725dd33d)
 
 ## Resultado final
-Agora o as requisições estão abstraidas pelo gateway e redirecionadas para o serviço específico.
+Agora as requisições estão sendo gerenciadas pelo gateway e redirecionadas para o serviço específico.
 
 ![exemplo](https://github.com/martineli17/azure-application-gateway-redirect-to-apps/assets/50757499/dcba2f9a-e3b8-41b2-b226-a94258518c8f)
 
